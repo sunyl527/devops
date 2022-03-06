@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: httpserver
+  name: httpserver
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: httpserver
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  name: httpserver-ing
+spec:
+  rules:
+  - host: httpserver.test.com
+    http:
+      paths:
+      - backend:
+          serviceName: httpserver
+          servicePort: 80
+  tls:
+  - hosts:
+    - httpserver.test.com
+    # 使用cert-manager生成
+    secretName: httpserver-cert
+    
+---
+apiVersion: cert-manager.io/v1alpha3
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-production
+spec:
+  acme:
+    email: syl_527@163.com
+    privateKeySecretRef:
+      name: letsencrypt-production-key
+    server: https://acme-v02.api.letsencrypt.org/directory
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
