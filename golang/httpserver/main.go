@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 /*
@@ -54,6 +55,11 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", homepage)
 	mux.HandleFunc("/healthz", healthz)
+	
+	// 用于prometheus的metrics接口
+	mux.Handle("/metrics", promhttp.Handler())
+
+	
 	if err := http.ListenAndServe("localhost:80", mux); err != nil {
 		fmt.Println("error:", err)
 	}
